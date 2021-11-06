@@ -13,7 +13,7 @@ class QuestcdnPipeline:
 
     def __init__(self):
         self.create_connection()
-        self.create_table()
+        # self.create_table()
         
     def create_connection(self):
         self.conn = mysql.connector.connect(
@@ -24,17 +24,51 @@ class QuestcdnPipeline:
         )
         self.curr = self.conn.cursor()
 
-    def create_table(self):
-        self.curr.execute("""create table scraped_info1(
-                        title text,
-                        author text,
-                        tag text
-                        )""")
+    # def create_table(self):
+    #     self.curr.execute("""create table scraped_info1(
+    #                     title text,
+    #                     author text,
+    #                     tag text
+    #                     )""")
 
     def process_item(self, item, spider):
-        # self.store_db(item)
-        # return item
-        pass
+        self.store_db(item,spider)
+        return item
+        # pass
+
+    def store_db(self, item, spider):
+        #     self.placholders = ', '.joins(['%s'] * len(item))
+        #     self.columns = ', '.join(item.keys())
+        #     self.query = "INSERT INTO %s (%s) VALUES (%s)" % ("table_name", self.columns, self.placeholders)
+        #
+        # self.items.extend([])
+        self.curr.execute("""insert into scraped_info values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", (
+            item['agent_name'],
+            item['bid_due_date'],
+            item['bid_open_date'],
+            item['constr_year'],
+            item['constr_type'],
+            item['contract_amt'],
+            item['district'],
+            item['estimated_completion_date'],
+            item['estimated_start_date'],
+            item['percent_completion'],
+            item['project_cntractor'],
+            item['project_name'],
+            item['project_number'],
+
+        ))
+        self.conn.commit()
+
+        # q = """insert into scraped_info values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        #
+        # try:
+        #     executemany(q, item)
+        #     self.conn.commit()
+        # except:
+        #     self.conn.rollback()
+
+
 
     # def store_db(self,item):
     #     self.curr.execute("""insert into scraped_info values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """,(
