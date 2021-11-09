@@ -32,7 +32,11 @@ class QuestcdnPipeline:
     #                     )""")
 
     def process_item(self, item, spider):
-        self.store_db(item,spider)
+        # item['agent_name'] = item['agent_name'] if item['agent_name'] is not None else 'NA'
+        # item['bid_due_date'] = item['bid_due_date'] if item['bid_due_date'] is not None else 'NA'
+        item['contract_amt'] = item['contract_amt'][1:].replace(',', '') if item['contract_amt'] != 'Not Available' else '0.00',
+        item['estimated_start_date'] = item['estimated_start_date'] if item['estimated_start_date'] != 'Not Available' else 'NA'
+        self.store_db(item, spider)
         return item
         # pass
 
@@ -42,7 +46,7 @@ class QuestcdnPipeline:
         #     self.query = "INSERT INTO %s (%s) VALUES (%s)" % ("table_name", self.columns, self.placeholders)
         #
         # self.items.extend([])
-        self.curr.execute("""insert into scraped_info values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", (
+        self.curr.execute("""insert into scraped_info1 values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", (
             item['agent_name'],
             item['bid_due_date'],
             item['bid_open_date'],
@@ -63,7 +67,7 @@ class QuestcdnPipeline:
         # q = """insert into scraped_info values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
         #
         # try:
-        #     executemany(q, item)
+        #     self.curr.executemany(q, item)
         #     self.conn.commit()
         # except:
         #     self.conn.rollback()
