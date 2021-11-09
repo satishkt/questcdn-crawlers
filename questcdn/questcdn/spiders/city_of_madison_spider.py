@@ -2,10 +2,25 @@ import scrapy
 
 from questcdn.items import QuestcdnItem
 
+from twisted.python import log
+import logging
+from scrapy.utils.log import configure_logging
+
 
 class CityOfMadisonSpider(scrapy.Spider):
     name = "city_of_madison"
     start_urls = ["https://cityofmadison.com/business/pw/contracts/"]
+    # configure_logging(install_root_handler=False)
+    # logging.basicConfig(
+    #     filename='log.txt',
+    #     filemode='a',
+    #     format='%(levelname)s: %(message)s',
+    #     level=logging.INFO
+    # )
+
+    logging.basicConfig(level=logging.INFO, filemode='a', filename='log.txt')
+    observer = log.PythonLoggingObserver()
+    observer.start()
 
     def start_requests(self):
         for url in self.start_urls:
