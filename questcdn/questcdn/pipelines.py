@@ -15,7 +15,7 @@ class QuestcdnPipeline:
 
     def __init__(self):
         self.create_connection()
-        self.items = []
+        # self.items = []
         # self.create_table()
 
     def create_connection(self):

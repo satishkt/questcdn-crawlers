@@ -8,6 +8,11 @@ from scrapy import signals
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
+import datetime
+from sqlalchemy.orm import sessionmaker
+import mysql.connector
+from questcdn import Jobs, db_connect
+
 
 class QuestcdnSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -101,3 +106,47 @@ class QuestcdnDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class SaveJobInDatabase(object):
+
+    def __init__(self):
+        self.create_connection()
+        # self.create_table()
+
+    def create_connection(self):
+        self.conn = mysql.connector.connect(
+            host = 'localhost',
+            user = 'root',
+            passwd = 'mpassword',
+            database = 'crawling'
+        )
+        self.curr = self.conn.cursor()
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        s = cls(crawler)
+        crawler.signals.connect(s.spider_closed, signal=signals.spider_closed)
+        return s
+
+    def spider_closed(self, spider, reason):
+        db_arg = getattr(spider,'addtodatabase','true')
+        stats = spider.crawler.stats.get_stats()
+
+        job = {}
+        job['job_id'] = self.get_jobid()
+        job['start_timestamp'] = stats.get('start_time').strftime('%Y-%m-%d %H:%M:%S')
+        job['end_timestamp'] = stats.get('finish_time').strftime('%Y-%m-%d %H:%M:%S')
+        job['spider_name'] = spider.name
+        job['items_scraped'] = stats.get('item_scraped_count')
+        job['items_dropped'] = stats.get('item_dropped_count')
+        job['finish_reason'] = stats.get('finish_reason')
+
+        """
+        Save jobs in the database.
+        This method is called whenever the spider is finished (closed)
+        """
+        session = self.Session()
+        job_add = Jobs(**job)
+        session.add(job_add)
+        session.commit()
