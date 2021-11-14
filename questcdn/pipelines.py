@@ -22,7 +22,7 @@ class QuestcdnPipeline:
         self.conn = mysql.connector.connect(
             host = 'localhost',
             user = 'root',
-            passwd = 'mpassword',
+            passwd = 'satish123',
             database = 'crawling'
         )
         self.curr = self.conn.cursor()
