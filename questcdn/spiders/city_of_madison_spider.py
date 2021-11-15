@@ -25,8 +25,9 @@ class CityOfMadisonSpider(scrapy.Spider):
     def parse_child_page(self, response):
         data_table = response.xpath("//div[@class='box']/div[@class='box_body']/table")
         loader = ItemLoader(item=QuestcdnItem(), selector=data_table)
+        loader.add_value("page_url", response.request.url)
         loader.add_value("city_name", "city_of_madison")
-        loader.add_value('agent_name','city_of_madison')
+        loader.add_value('agent_name', 'city_of_madison')
         loader.add_xpath('project_name', './tr[1]/td[2]/text()')
         loader.add_xpath('project_number', './tr[2]/td[2]/text()')
         loader.add_xpath('bid_due_date', './tr[3]/td[2]/text()')

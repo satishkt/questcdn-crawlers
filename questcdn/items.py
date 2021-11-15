@@ -59,6 +59,7 @@ def remove_spaces(text):
 
 class QuestcdnItem(Item):
     # define the fields for your item here like:
+    page_url=Field()
     city_name = Field(output_processor=TakeFirst())
     agent_name = Field(output_processor=TakeFirst())
     project_name = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())

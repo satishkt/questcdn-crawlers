@@ -21,6 +21,7 @@ class Project(Base):
     __tablename__ = 'project'
 
     id = Column(Integer, primary_key=True)
+    page_url=Column("page_url",String(100))
     city_name = Column("city_name", String(100))
     agent_name = Column('agent_name', String(100))
     project_name = Column('project_name', String(100))
