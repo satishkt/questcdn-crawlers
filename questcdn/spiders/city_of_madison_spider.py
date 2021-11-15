@@ -16,13 +16,17 @@ class CityOfMadisonSpider(scrapy.Spider):
 
     def parse(self, response, **kwargs):
         for page_href in response.xpath("//table[@class='border']/tr/td/a/@href").getall():
-            self.logger.info(f"Processing child page - {page_href} ")
-            yield response.follow(page_href, callback=self.parse_child_page)
+            if 'details.cfm?ContractNumber' in page_href:
+                self.logger.info(f"Processing child page - {page_href} ")
+                yield response.follow(page_href, callback=self.parse_child_page)
+            else:
+                self.logger.warn(f'Not a valid child page url {page_href}')
 
     def parse_child_page(self, response):
         data_table = response.xpath("//div[@class='box']/div[@class='box_body']/table")
         loader = ItemLoader(item=QuestcdnItem(), selector=data_table)
-        loader.add_value("city_name","city_of_madison")
+        loader.add_value("city_name", "city_of_madison")
+        loader.add_value('agent_name','city_of_madison')
         loader.add_xpath('project_name', './tr[1]/td[2]/text()')
         loader.add_xpath('project_number', './tr[2]/td[2]/text()')
         loader.add_xpath('bid_due_date', './tr[3]/td[2]/text()')
