@@ -36,7 +36,7 @@ class CityOfMadisonSpider(scrapy.Spider):
         loader.add_xpath('estimated_completion_date', './tr[6]/td[2]/text()')
         loader.add_xpath('percent_completion', './tr[7]/td[2]/text()')
         loader.add_xpath('contract_amt', './tr[8]/td[2]/text()')
-        loader.add_xpath('project_cntractor', './tr[9]/td[2]/text()')
+        loader.add_xpath('project_contractor', './tr[9]/td[2]/text()')
         loader.add_xpath('constr_year', './tr[10]/td[2]/text()')
         loader.add_xpath('constr_type', './tr[11]/td[2]/text()')
         loader.add_xpath('district', './tr[12]/td[2]/text()')

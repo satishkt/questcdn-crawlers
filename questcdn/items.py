@@ -12,23 +12,21 @@ from decimal import Decimal
 
 
 def parse_date_format1(text):
-    if 'Not Available' or 'Future Project' in text:
+    if text in ['Not Available', 'Future Project']:
         return date(year=9999, month=12, day=31)
     else:
         return datetime.strptime(text, '%m/%d/%y')
 
 
 def parse_date_format2(text):
-    if 'Not Available' or 'Future Project' in text:
+    if text in ['Not Available', 'Future Project']:
         return date(year=9999, month=12, day=31)
     else:
         return datetime.strptime(text, '%m/%d/%Y')
 
 
-
-
 def fix_unavailable_date(text):
-    if 'Not Available' or 'Future Project' in text:
+    if text in ['Not Available', 'Future Project'] or text is None:
         return date(year=9999, month=12, day=31)
     else:
         return datetime.strptime(text, '%m/%d/%Y')
@@ -38,7 +36,7 @@ def fix_percent_complete(text):
     if 'Not Available' in text:
         return 9999.99
     elif '%' in text:
-        float(text.replace('%', '').strip())
+        return float(text.replace('%', '').strip())
     else:
         return float(text.strip('"'))
 
@@ -73,7 +71,7 @@ class QuestcdnItem(Item):
     percent_completion = Field(input_processor=MapCompose(remove_spaces, fix_percent_complete),
                                output_processor=TakeFirst())
     contract_amt = Field(input_processor=MapCompose(remove_spaces, fix_dollar_value), output_processor=TakeFirst())
-    project_cntractor = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+    project_contractor = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     constr_year = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     constr_type = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     district = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())

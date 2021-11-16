@@ -33,6 +33,7 @@ class QuestcdnPipeline:
         project.estimated_start_date = self.get_item_val_or_none('estimated_start_date', spider, item)
         project.estimated_completion_date = self.get_item_val_or_none('estimated_completion_date', spider, item)
         project.percent_completion = self.get_item_val_or_none('percent_completion', spider, item)
+        project.project_contractor = self.get_item_val_or_none('project_contractor', spider, item)
         project.district = self.get_item_val_or_none('district', spider, item)
 
         try:
