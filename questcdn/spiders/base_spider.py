@@ -1,12 +1,16 @@
 import scrapy
 from scrapy import signals
 
+from questcdn.models import db_connect
+
 
 class BaseQuestCDNSpider(scrapy.Spider):
     name = "base_quest_cdn_spider"
 
     def __init__(self, **kwargs):
         super(BaseQuestCDNSpider, self).__init__(name=self.name, **kwargs)
+        ## Set up the database core connection/engine here. This engine is shared across all db calls and is passed as a spider attribute.
+        self.engine = db_connect()
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):

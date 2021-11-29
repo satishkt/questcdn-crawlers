@@ -6,19 +6,14 @@ import logging
 
 from sqlalchemy.orm import sessionmaker
 
-from questcdn.models import db_connect, create_table, Project
+from questcdn.models import Project
 
 
 class QuestcdnPipeline:
 
-    def __init__(self):
-        engine = db_connect()
-        create_table(engine)
-        self.Session = sessionmaker(bind=engine)
-
     def process_item(self, item, spider):
         spider.log(f"Processing item from spider {spider.name} for url ={item['page_url']} ", logging.INFO)
-        session = self.Session()
+        session = sessionmaker(bind=spider.engine)
         project = Project()
         project.page_url = self.get_item_val_or_none('page_url', spider, item)
         project.city_name = self.get_item_val_or_none('city_name', spider, item)
