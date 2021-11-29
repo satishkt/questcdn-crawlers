@@ -116,7 +116,6 @@ class BaseQuestCDNSpider(scrapy.Spider):
             self.logger.info(f"Checking if the url {url} is enabled for scraping ")
             should_scrape = self.check_if_agent_is_to_be_scraped(url)
             if should_scrape:
-                self.start_tracking_scraping_begin()
                 yield scrapy.Request(url=url, callback=self.parse)
             else:
                 self.logger.warning(f"URL {url}  is not enabled for scraping, exiting")
