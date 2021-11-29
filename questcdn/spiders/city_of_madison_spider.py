@@ -10,7 +10,7 @@ class CityOfMadisonSpider(BaseQuestCDNSpider):
     start_urls = ["https://cityofmadison.com/business/pw/contracts/"]
 
     def __init__(self, **kwargs):
-        super(CityOfMadisonSpider, self).__init__(**kwargs)
+        super(CityOfMadisonSpider, self).__init__(self.name, **kwargs)
 
     def parse(self, response, **kwargs):
         for page_href in response.xpath("//table[@class='border']/tr/td/a/@href").getall():
