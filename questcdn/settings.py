@@ -106,7 +106,7 @@ configure_logging(settings={
     "LOG_STDOUT": True
 })
 # Define your logging settings.
-log_file = 'logs/CRAWLER_logs.log'
+log_file = '/logs/CRAWLER_logs.log'
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)

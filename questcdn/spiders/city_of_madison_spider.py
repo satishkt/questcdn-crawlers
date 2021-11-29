@@ -2,17 +2,13 @@ import scrapy
 from scrapy.loader import ItemLoader
 
 from questcdn.items import QuestcdnItem
+from questcdn.spiders.base_spider import BaseQuestCDNSpider
 
 
-class CityOfMadisonSpider(scrapy.Spider):
+class CityOfMadisonSpider(BaseQuestCDNSpider):
     name = "city_of_madison"
     start_urls = ["https://cityofmadison.com/business/pw/contracts/"]
 
-    def start_requests(self):
-        self.logger.info(f'Starting the spider - {self.name}')
-        for url in self.start_urls:
-            self.logger.info(f"Processing url {url}")
-            yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response, **kwargs):
         for page_href in response.xpath("//table[@class='border']/tr/td/a/@href").getall():
