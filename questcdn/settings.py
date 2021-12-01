@@ -6,6 +6,7 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import sys
 
 BOT_NAME = 'questcdn'
 
@@ -89,7 +90,7 @@ HTTPCACHE_ENABLED = True
 CONNECTION_STRING = "{drivername}+mysqlconnector://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
     drivername="mysql",
     user="root",
-    passwd="satish123",
+    passwd="Ssuji123",
     host="localhost",
     port="3306",
     db_name="crawling",
@@ -100,13 +101,39 @@ from logging.handlers import RotatingFileHandler
 
 from scrapy.utils.log import configure_logging
 
+import logging
+import os
+import errno
+
+
+def mkdir_p(path):
+    """http://stackoverflow.com/a/600612/190597 (tzot)"""
+    try:
+        os.makedirs(path, exist_ok=True)  # Python>3.2
+    except TypeError:
+        try:
+            os.makedirs(path)
+        except OSError as exc:  # Python >2.5
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
+
+
+class MakeFileHandler(logging.FileHandler):
+    def __init__(self, filename, mode='a', encoding=None, delay=0):
+        mkdir_p(os.path.dirname(filename))
+        logging.FileHandler.__init__(self, filename, mode, encoding, delay)
+
+
 LOG_ENABLED = False
 # Disable default Scrapy log settings.
 configure_logging(settings={
     "LOG_STDOUT": True
 })
 # Define your logging settings.
-log_file = '/logs/CRAWLER_logs.log'
+log_file = 'logs/CRAWLER_logs.log'
+stdout_handler = logging.StreamHandler(sys.stdout)
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -114,7 +141,7 @@ formatter = logging.Formatter(
     fmt="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%H:%M:%S"
 )
-rotating_file_log = RotatingFileHandler(log_file, maxBytes=10485760, backupCount=1)
+rotating_file_log = MakeFileHandler(log_file)
 rotating_file_log.setLevel(logging.DEBUG)
 rotating_file_log.setFormatter(formatter)
 root_logger.addHandler(rotating_file_log)

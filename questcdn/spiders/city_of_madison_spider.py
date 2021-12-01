@@ -7,7 +7,7 @@ from questcdn.spiders.base_spider import BaseQuestCDNSpider
 
 class CityOfMadisonSpider(BaseQuestCDNSpider):
     name = "city_of_madison"
-    start_urls = ["https://cityofmadison.com/business/pw/contracts/"]
+    start_urls = ["https://www.cityofmadison.com/business/pw/contracts/"]
 
     def __init__(self, **kwargs):
         super(CityOfMadisonSpider, self).__init__(self.name, **kwargs)

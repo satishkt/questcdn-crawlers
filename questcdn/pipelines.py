@@ -4,7 +4,7 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import logging
 
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 from questcdn.models import Project
 
@@ -13,7 +13,8 @@ class QuestcdnPipeline:
 
     def process_item(self, item, spider):
         spider.log(f"Processing item from spider {spider.name} for url ={item['page_url']} ", logging.INFO)
-        session = sessionmaker(bind=spider.engine)
+        Session = sessionmaker(bind=spider.engine)
+        session=Session()
         project = Project()
         project.page_url = self.get_item_val_or_none('page_url', spider, item)
         project.city_name = self.get_item_val_or_none('city_name', spider, item)

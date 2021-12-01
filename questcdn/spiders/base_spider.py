@@ -1,13 +1,15 @@
 import scrapy
 from scrapy import signals
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker, Session, aliased
 
-from questcdn.models import db_connect
+from questcdn.models import db_connect, DataAggregatorAgent
 
 
 class BaseQuestCDNSpider(scrapy.Spider):
     name = "base_quest_cdn_spider"
 
-    def __init__(self,name, **kwargs):
+    def __init__(self, name, **kwargs):
         super(BaseQuestCDNSpider, self).__init__(name=self.name, **kwargs)
         ## Set up the database core connection/engine here. This engine is shared across all db calls and is passed as a spider attribute.
         self.engine = db_connect()
@@ -72,7 +74,20 @@ class BaseQuestCDNSpider(scrapy.Spider):
         Check the data aggregator agent table to see if this url is active and needs to be scraped.
         :return:
         """
-        pass
+        self.logger.info(f"Checking to see if {agent_url} is enabled for scraping")
+        with Session(self.engine) as session:
+            agent = aliased(DataAggregatorAgent, name="agent")
+            stmt = select(agent).where(agent.site_url == agent_url)
+            result = session.execute(stmt)
+            row = result.fetchone()
+            self.logger.info(row.agent.auto_flag)
+            print(row.agent.auto_flag)
+            if row.agent.auto_flag is None or row.agent.auto_flag != 'N':
+                self.logger.info(f"Agent URL = {agent_url} is enabled for scraping")
+                return True
+            else:
+                self.logger.info(f"Agent URL = {agent_url} is not enabled for scraping")
+                return False
 
     def scraping_begin(self, spider):
         """
