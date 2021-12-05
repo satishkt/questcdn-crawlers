@@ -1,9 +1,9 @@
 from scrapy.utils.project import get_project_settings
 from sqlalchemy import create_engine, Column, Integer, String, DateTime,Float
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.automap import automap_base
 from sqlalchemy_json import MutableJson
 
-Base = declarative_base()
+Base = automap_base()
 
 
 def db_connect():
@@ -16,7 +16,7 @@ def db_connect():
 
 class DataAggregatorAgent(Base):
     __tablename__ = 'data_aggregator_agent'
-    id = Column('data_aggregator_agent_id', primary_key=True)
+    id = Column('data_aggregator_agent_id',Integer, primary_key=True)
     agent_name = Column('agent_name', String)
     site_url = Column('site_url', String)
     owner = Column('owner', String)
@@ -29,7 +29,7 @@ class DataAggregatorAgent(Base):
 
 class Error(Base):
     __tablename__ = 'agent_error'
-    id = Column('agent_error_id', primary_key=True)
+    id = Column('agent_error_id', Integer,primary_key=True)
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String)
     last_update_date_time = Column('last_update_date_time', DateTime)
@@ -41,7 +41,7 @@ class Error(Base):
 
 class Setting(Base):
     __tablename__ = 'agent_setting'
-    id = Column('agent_setting_id', primary_key=True)
+    id = Column('agent_setting_id',Integer, primary_key=True)
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String(100))
     last_update_date_time = Column('last_update_date_time', DateTime)
@@ -51,7 +51,7 @@ class Setting(Base):
 
 class Tracking(Base):
     __tablename__ = 'agent_tracking'
-    id = Column('agent_tracking_id', primary_key=True)
+    id = Column('agent_tracking_id',Integer,primary_key=True)
     site_url = Column('site_url', String(100))
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String(100))
@@ -64,7 +64,7 @@ class Tracking(Base):
 
 class Tracking_Info(Base):
     __tablename__ = 'agent_tacking_info'
-    id = Column('agent_tracking_info_id', primary_key=True)
+    id = Column('agent_tracking_info_id',Integer, primary_key=True)
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String(100))
     last_update_date_time = Column('last_update_date_time', DateTime)
@@ -91,3 +91,6 @@ class Project(Base):
     constr_year = Column('constr_year', Integer)
     constr_type = Column('constr_type', String(100))
     district = Column('district', String(100))
+
+
+Base.prepare(db_connect(),reflect=True)

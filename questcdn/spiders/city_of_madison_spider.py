@@ -12,6 +12,9 @@ class CityOfMadisonSpider(BaseQuestCDNSpider):
     def __init__(self, **kwargs):
         super(CityOfMadisonSpider, self).__init__(self.name, **kwargs)
 
+
+
+
     def parse(self, response, **kwargs):
         for page_href in response.xpath("//table[@class='border']/tr/td/a/@href").getall():
             if 'details.cfm?ContractNumber' in page_href:

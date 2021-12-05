@@ -1,9 +1,12 @@
+from datetime import datetime
+
 import scrapy
 from scrapy import signals
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker, Session, aliased
+from sqlalchemy.orm.sync import update
 
-from questcdn.models import db_connect, DataAggregatorAgent
+from questcdn.models import db_connect, DataAggregatorAgent, Tracking
 
 
 class BaseQuestCDNSpider(scrapy.Spider):
@@ -82,20 +85,33 @@ class BaseQuestCDNSpider(scrapy.Spider):
             row = result.fetchone()
             self.logger.info(row.agent.auto_flag)
             print(row.agent.auto_flag)
+
             if row.agent.auto_flag is None or row.agent.auto_flag != 'N':
                 self.logger.info(f"Agent URL = {agent_url} is enabled for scraping")
-                return True
+                return False
             else:
                 self.logger.info(f"Agent URL = {agent_url} is not enabled for scraping")
                 return False
 
     def scraping_begin(self, spider):
         """
-        This methods adds an entry into the tracking table to track the start of scraping process.
-        :return:
+                This methods adds an entry into the tracking table to track the start of scraping process.
+                :return:
         """
         # TODO - Create an entry in the tracking table, get the tracking ID and store it in a local class variable.
-        pass
+
+        self.logger.info(f"Starting to scrape with spider {spider.name}")
+        tracking = Tracking()
+        scraped_urls = ','.join(spider.start_urls)
+        tracking.site_url = scraped_urls
+        tracking.start_time = datetime.now()
+        tracking.created_date_time = datetime.now()
+        with Session(self.engine) as session:
+            session.add(tracking)
+            session.flush()
+            self.logger.info(f"Inserted tracking id is {tracking.id}")
+            self.tracking_id = tracking.id
+            session.commit()
 
     def scraping_end(self, spider, reason):
         """
@@ -104,8 +120,14 @@ class BaseQuestCDNSpider(scrapy.Spider):
         :param reason:
         :return:
         """
-        # TODO - Use the local class variable retrieved the scraping begin method to update the row to scraping ended with the reason.
-        pass
+        self.logger.info(f"Ending Spider  Tracking session for spider {spider.name} with tracking id {self.tracking_id}")
+        with Session(self.engine) as session:
+            tracking_end_time = datetime.now()
+            tracking = session.query(Tracking).filter(Tracking.id == self.tracking_id).one()
+            tracking.end_time = tracking_end_time
+            session.commit()
+            self.logger.info(
+                f"Ending tracking session for tracking id {self.tracking_id} at {tracking_end_time} with reason as {reason}")
 
     def scraping_failed(self, spider, reason, response):
         """
