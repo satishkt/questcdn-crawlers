@@ -15,7 +15,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
     def __init__(self, name, **kwargs):
         super(BaseQuestCDNSpider, self).__init__(name=self.name, **kwargs)
         ## Set up the database core connection/engine here. This engine is shared across all db calls and is passed as a spider attribute.
-        self.engine = db_connect()
+        #self.engine = db_connect()
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -58,15 +58,15 @@ class BaseQuestCDNSpider(scrapy.Spider):
         pass
 
     def spider_opened(self, spider):
-        self.scraping_begin(spider)
+        #self.scraping_begin(spider)
         pass
 
     def spider_closed(self, spider, reason):
-        self.scraping_end(spider, reason)
+        #self.scraping_end(spider, reason)
         pass
 
     def spider_error(self, failure, response, spider):
-        self.scraping_failed(spider, failure, response)
+        #self.scraping_failed(spider, failure, response)
         pass
 
     ####################### Call back methods that will be invoked END~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

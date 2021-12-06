@@ -1,7 +1,6 @@
 from scrapy.utils.project import get_project_settings
 from sqlalchemy import create_engine, Column, Integer, String, DateTime,Float
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy_json import MutableJson
 
 Base = automap_base()
 
@@ -36,7 +35,7 @@ class Error(Base):
     last_update_date_by = Column('last_update_date_by', String)
     run_id = Column('run_id', Integer)
     error_code = Column('error_code', String)
-    error_info = Column('error_info', MutableJson)
+    error_info = Column('error_info', String)
 
 
 class Setting(Base):
@@ -46,7 +45,7 @@ class Setting(Base):
     created_by = Column('created_by', String(100))
     last_update_date_time = Column('last_update_date_time', DateTime)
     last_update_date_by = Column('last_update_date_by', String)
-    setting = Column('setting', MutableJson)
+    setting = Column('setting', String)
 
 
 class Tracking(Base):
@@ -69,7 +68,7 @@ class Tracking_Info(Base):
     created_by = Column('created_by', String(100))
     last_update_date_time = Column('last_update_date_time', DateTime)
     last_update_date_by = Column('last_update_date_by', String)
-    tracking_info = Column('tracking_info', MutableJson)
+    tracking_info = Column('tracking_info', String)
 
 
 class Project(Base):
@@ -93,4 +92,4 @@ class Project(Base):
     district = Column('district', String(100))
 
 
-Base.prepare(db_connect(),reflect=True)
+#Base.prepare(db_connect(),reflect=True)

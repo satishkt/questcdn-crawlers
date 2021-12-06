@@ -96,6 +96,7 @@ CONNECTION_STRING = "{drivername}+mysqlconnector://{user}:{passwd}@{host}:{port}
     db_name="crawling",
 )
 
+
 import logging
 from logging.handlers import RotatingFileHandler
 
