@@ -57,7 +57,7 @@ def remove_spaces(text):
 
 class QuestcdnItem(Item):
     # define the fields for your item here like:
-    page_url=Field(output_processor=TakeFirst())
+    page_url = Field(output_processor=TakeFirst())
     city_name = Field(output_processor=TakeFirst())
     agent_name = Field(output_processor=TakeFirst())
     project_name = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
@@ -75,3 +75,24 @@ class QuestcdnItem(Item):
     constr_year = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     constr_type = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     district = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+
+
+class PlanetBidItem(Item):
+    main_url = Field()
+    page_url = Field()
+    project_title = Field(input_processor=MapCompose(remove_spaces))
+    job_description = Field(input_processor=MapCompose(remove_spaces))
+    bid_due_date = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+    state_code = Field(input_processor=MapCompose(remove_spaces))
+    owner = Field(input_processor=MapCompose(remove_spaces))
+    solicitor = Field(input_processor=MapCompose(remove_spaces))
+    contact_first_name = Field(input_processor=MapCompose(remove_spaces))
+    contact_last_name = Field(input_processor=MapCompose(remove_spaces))
+    contact_ph_no = Field(input_processor=MapCompose(remove_spaces))
+    contact_email_id = Field(input_processor=MapCompose(remove_spaces))
+    county = Field(input_processor=MapCompose(remove_spaces))
+    estimated_val = Field(input_processor=MapCompose(remove_spaces))
+    owner_project_no = Field(input_processor=MapCompose(remove_spaces))
+    bid_posting_date = Field(output_processor=TakeFirst(),
+                             input_processor=MapCompose(remove_spaces, parse_date_format1))
+    project_stage = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
