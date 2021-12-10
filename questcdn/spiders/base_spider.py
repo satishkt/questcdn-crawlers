@@ -3,10 +3,9 @@ from datetime import datetime
 import scrapy
 from scrapy import signals
 from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker, Session, aliased
-from sqlalchemy.orm.sync import update
+from sqlalchemy.orm import Session, aliased
 
-from questcdn.models import db_connect, DataAggregatorAgent, Tracking
+from questcdn.models import db_connect, DataAggregatorAgent, Tracking, create_table, Error
 
 
 class BaseQuestCDNSpider(scrapy.Spider):
@@ -15,7 +14,8 @@ class BaseQuestCDNSpider(scrapy.Spider):
     def __init__(self, name, **kwargs):
         super(BaseQuestCDNSpider, self).__init__(name=self.name, **kwargs)
         ## Set up the database core connection/engine here. This engine is shared across all db calls and is passed as a spider attribute.
-        #self.engine = db_connect()
+        self.engine = db_connect()
+        create_table(self.engine)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -41,33 +41,27 @@ class BaseQuestCDNSpider(scrapy.Spider):
 
     def engine_started(self):
         self.logger.info(f"Starting Engine for spider {self.name}")
-        pass
 
     def engine_stopped(self):
         self.logger.info(f"Stopping Engine for spider {self.name}")
-        pass
 
     def item_scraped(self, item, spider, response):
         self.logger.info(f"Spider {spider.name} has finished scraping item {item}")
-        pass
 
     def item_error(self, item, response, spider, failure):
-        pass
+        self.item_failure(spider, item, response, exception=failure)
 
     def item_dropped(self, item, response, exception, spider):
-        pass
+        self.item_failure(spider, item, response, exception=failure)
 
     def spider_opened(self, spider):
-        #self.scraping_begin(spider)
-        pass
+        self.scraping_begin(spider)
 
     def spider_closed(self, spider, reason):
-        #self.scraping_end(spider, reason)
-        pass
+        self.scraping_end(spider, reason)
 
     def spider_error(self, failure, response, spider):
-        #self.scraping_failed(spider, failure, response)
-        pass
+        self.scraping_failed(spider, failure, response)
 
     ####################### Call back methods that will be invoked END~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -78,14 +72,13 @@ class BaseQuestCDNSpider(scrapy.Spider):
         :return:
         """
         self.logger.info(f"Checking to see if {agent_url} is enabled for scraping")
-        with Session(self.engine) as session:
+        with Session(self.engine) as session,session.begin():
             agent = aliased(DataAggregatorAgent, name="agent")
             stmt = select(agent).where(agent.site_url == agent_url)
             result = session.execute(stmt)
             row = result.fetchone()
             self.logger.info(row.agent.auto_flag)
             print(row.agent.auto_flag)
-
             if row.agent.auto_flag is None or row.agent.auto_flag != 'N':
                 self.logger.info(f"Agent URL = {agent_url} is enabled for scraping")
                 return False
@@ -106,12 +99,11 @@ class BaseQuestCDNSpider(scrapy.Spider):
         tracking.site_url = scraped_urls
         tracking.start_time = datetime.now()
         tracking.created_date_time = datetime.now()
-        with Session(self.engine) as session:
+        with Session(self.engine) as session,,session.begin():
             session.add(tracking)
             session.flush()
             self.logger.info(f"Inserted tracking id is {tracking.id}")
             self.tracking_id = tracking.id
-            session.commit()
 
     def scraping_end(self, spider, reason):
         """
@@ -120,12 +112,13 @@ class BaseQuestCDNSpider(scrapy.Spider):
         :param reason:
         :return:
         """
-        self.logger.info(f"Ending Spider  Tracking session for spider {spider.name} with tracking id {self.tracking_id}")
-        with Session(self.engine) as session:
+        self.logger.info(
+            f"Ending Spider  Tracking session for spider {spider.name} with tracking id {self.tracking_id}")
+        with Session(self.engine) as session,,session.begin():
             tracking_end_time = datetime.now()
             tracking = session.query(Tracking).filter(Tracking.id == self.tracking_id).one()
             tracking.end_time = tracking_end_time
-            session.commit()
+            tracking.final_status = 'NO_ISSUES'
             self.logger.info(
                 f"Ending tracking session for tracking id {self.tracking_id} at {tracking_end_time} with reason as {reason}")
 
@@ -136,10 +129,20 @@ class BaseQuestCDNSpider(scrapy.Spider):
         :param reason:
         :return:
         """
-        # TODO - Use the local class variable for tracking id and add an entry in the errors table with error code as SPIDER_ERROR and the error reason as a JSON formatted string,response has the URL where the spider crashed.
+        self.logger.info(
+            f"Ending Spider  Tracking session for spider {spider.name} with tracking id {self.tracking_id}")
+        with Session(self.engine) as session,session.begin():
+            tracking_end_time = datetime.now()
+            tracking = session.query(Tracking).filter(Tracking.id == self.tracking_id).one()
+            tracking.end_time = tracking_end_time
+            tracking.final_status = 'FAILED'
+            tracking.extra_info = reason
+            self.logger.info(
+                f"Ending tracking session for tracking id {self.tracking_id} at {tracking_end_time} with reason as {reason} and response {response}")
+
         pass
 
-    def item_failure(self, spider, response, exception):
+    def item_failure(self, item, spider, response, exception):
         """
         This method adds an entry into the error_info table with error_code as ITEM_ERROR
         :param spider:
@@ -147,9 +150,16 @@ class BaseQuestCDNSpider(scrapy.Spider):
         :param exception:
         :return:
         """
-        # TODO - Use the local class variable for tracking id , add an entry into the errors table with error code as ITEM_ERROR and the error reason as generated exception from the JSON.
-
-        pass
+        with Session(self.engine) as session,session.begin():
+            self.logger.error(
+                f"Logging item failed error from {spider.name} for item {item}, with exception = {str(exception)} and response = {response}")
+            item_failure_error = Error()
+            item_failure_error.tracking_id = self.tracking_id
+            item_failure_error.error_url = response.url
+            item_failure_error.item_info = item
+            item_failure_error.error_info = str(exception)
+            item_failure_error.error_code = 'ITEM_PARSE_FAILED'
+            session.add(item_failure_error)
 
     def start_requests(self):
         self.logger.info(f'Starting the spider - {self.name}')

@@ -63,6 +63,8 @@ class QuestcdnPipeline:
         project_stage.county = self.get_item_val_or_none('county', spider, item)
         project_stage.estimated_value = self.get_item_val_or_none('estimated_val', spider, item)
         project_stage.owner_project_no = self.get_item_val_or_none('owner_project_no', spider, item)
+        with Session(spider.engine) as session, session.begin():
+            session.add(project_stage)
 
         pass
 

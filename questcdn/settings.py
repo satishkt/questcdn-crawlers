@@ -90,10 +90,10 @@ HTTPCACHE_ENABLED = True
 CONNECTION_STRING = "{drivername}+mysqlconnector://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
     drivername="mysql",
     user="root",
-    passwd="Ssuji123",
+    passwd="satish123",
     host="localhost",
     port="3306",
-    db_name="crawling",
+    db_name="q_cdn_scrap",
 )
 
 import logging
