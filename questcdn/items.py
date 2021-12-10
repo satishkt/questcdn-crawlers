@@ -2,8 +2,10 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
+import re
+import pytz
+import pyap
 
-import scrapy
 from scrapy.item import Field, Item
 from itemloaders.processors import MapCompose, TakeFirst
 from datetime import datetime, date
@@ -55,6 +57,52 @@ def remove_spaces(text):
     return text.strip()
 
 
+def find_state(text):
+    addresses = pyap.parse(text, country='US')
+    if len(addresses) > 0:
+        get_add_1 = addresses[0]
+        return get_add_1.as_dict()['region']
+
+
+def parse_bid_posting_date(text):
+    """
+    bid posting date looks like '09/29/2021 11:16 AM (PST)'
+    Remove the (PST) string before parsing
+    :param text:
+    :return:
+    """
+    fmt = '%m/%d/%Y %I:%M %p'
+    if 'PST' in text:
+        bid_p_date = text[:-5].strip()
+        pst_tz = pytz.timezone("America/Los_Angeles")
+        return pst_tz.localize(datetime.strptime(bid_p_date, fmt))
+    elif 'EST' in text:
+        bid_p_date = text[:-5].strip()
+        est_tz = pytz.timezone("US/Eastern")
+        return est_tz.localize(datetime.strptime(bid_p_date, fmt))
+    return datetime.strptime(text, fmt)
+
+
+def clean_up_first_last_name(text):
+    email = parse_email_from_contact_deets(text)
+    return text.replace(email, '').strip()
+
+
+def parse_email_from_contact_deets(text):
+    match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', text)
+    if match is not None:
+        return match.group(0)
+    else:
+        return ''
+
+
+def parse_ph_no_from_contact_details(text):
+    match = re.search(r"\(?\b[2-9][0-9]{2}\)?[-. ]?[2-9][0-9]{2}[-. ]?[0-9]{4}\b", text)
+    if match is None:
+        return ''
+    return match.group(0)
+
+
 class QuestcdnItem(Item):
     # define the fields for your item here like:
     page_url = Field(output_processor=TakeFirst())
@@ -78,21 +126,26 @@ class QuestcdnItem(Item):
 
 
 class PlanetBidItem(Item):
-    main_url = Field()
-    page_url = Field()
-    project_title = Field(input_processor=MapCompose(remove_spaces))
-    job_description = Field(input_processor=MapCompose(remove_spaces))
-    bid_due_date = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
-    state_code = Field(input_processor=MapCompose(remove_spaces))
-    owner = Field(input_processor=MapCompose(remove_spaces))
-    solicitor = Field(input_processor=MapCompose(remove_spaces))
-    contact_first_name = Field(input_processor=MapCompose(remove_spaces))
-    contact_last_name = Field(input_processor=MapCompose(remove_spaces))
-    contact_ph_no = Field(input_processor=MapCompose(remove_spaces))
-    contact_email_id = Field(input_processor=MapCompose(remove_spaces))
-    county = Field(input_processor=MapCompose(remove_spaces))
-    estimated_val = Field(input_processor=MapCompose(remove_spaces))
-    owner_project_no = Field(input_processor=MapCompose(remove_spaces))
+    main_url = Field(output_processor=TakeFirst())
+    page_url = Field(output_processor=TakeFirst())
+    project_title = Field(input_processor=MapCompose(remove_spaces, output_processor=TakeFirst()))
+    job_description = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+    bid_due_date = Field(input_processor=MapCompose(remove_spaces, parse_bid_posting_date),
+                         output_processor=TakeFirst())
+    state_code = Field(input_processor=MapCompose(remove_spaces,find_state), output_processor=TakeFirst())
+    owner = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+    solicitor = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+    contact_first_name = Field(input_processor=MapCompose(remove_spaces, clean_up_first_last_name),
+                               output_processor=TakeFirst())
+    contact_last_name = Field(input_processor=MapCompose(remove_spaces, clean_up_first_last_name),
+                              output_processor=TakeFirst())
+    contact_ph_no = Field(input_processor=MapCompose(remove_spaces, parse_ph_no_from_contact_details),
+                          output_processor=TakeFirst())
+    contact_email_id = Field(input_processor=MapCompose(remove_spaces, parse_email_from_contact_deets),
+                             output_processor=TakeFirst())
+    county = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+    estimated_val = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
+    owner_project_no = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     bid_posting_date = Field(output_processor=TakeFirst(),
-                             input_processor=MapCompose(remove_spaces, parse_date_format1))
+                             input_processor=MapCompose(remove_spaces, parse_bid_posting_date))
     project_stage = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())

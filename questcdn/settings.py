@@ -20,7 +20,7 @@ NEWSPIDER_MODULE = 'questcdn.spiders'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-# CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 2
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -146,3 +146,5 @@ rotating_file_log.setLevel(logging.DEBUG)
 rotating_file_log.setFormatter(formatter)
 root_logger.addHandler(rotating_file_log)
 root_logger.addHandler(stdout_handler)
+logging.getLogger('scrapy').setLevel(logging.WARNING)
+logging.getLogger('selenium').setLevel(logging.WARNING)

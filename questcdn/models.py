@@ -1,5 +1,5 @@
 from scrapy.utils.project import get_project_settings
-from sqlalchemy import create_engine, Column, Integer, String, DateTime,Float
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Date, Time, BigInteger
 from sqlalchemy.ext.automap import automap_base
 
 Base = automap_base()
@@ -15,7 +15,7 @@ def db_connect():
 
 class DataAggregatorAgent(Base):
     __tablename__ = 'data_aggregator_agent'
-    id = Column('data_aggregator_agent_id',Integer, primary_key=True)
+    id = Column('data_aggregator_agent_id', Integer, primary_key=True)
     agent_name = Column('agent_name', String)
     site_url = Column('site_url', String)
     owner = Column('owner', String)
@@ -28,7 +28,7 @@ class DataAggregatorAgent(Base):
 
 class Error(Base):
     __tablename__ = 'agent_error'
-    id = Column('agent_error_id', Integer,primary_key=True)
+    id = Column('agent_error_id', Integer, primary_key=True)
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String)
     last_update_date_time = Column('last_update_date_time', DateTime)
@@ -40,7 +40,7 @@ class Error(Base):
 
 class Setting(Base):
     __tablename__ = 'agent_setting'
-    id = Column('agent_setting_id',Integer, primary_key=True)
+    id = Column('agent_setting_id', Integer, primary_key=True)
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String(100))
     last_update_date_time = Column('last_update_date_time', DateTime)
@@ -50,7 +50,7 @@ class Setting(Base):
 
 class Tracking(Base):
     __tablename__ = 'agent_tracking'
-    id = Column('agent_tracking_id',Integer,primary_key=True)
+    id = Column('agent_tracking_id', Integer, primary_key=True)
     site_url = Column('site_url', String(100))
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String(100))
@@ -63,7 +63,7 @@ class Tracking(Base):
 
 class Tracking_Info(Base):
     __tablename__ = 'agent_tacking_info'
-    id = Column('agent_tracking_info_id',Integer, primary_key=True)
+    id = Column('agent_tracking_info_id', Integer, primary_key=True)
     created_date_time = Column('created_date_time', DateTime)
     created_by = Column('created_by', String(100))
     last_update_date_time = Column('last_update_date_time', DateTime)
@@ -73,9 +73,8 @@ class Tracking_Info(Base):
 
 class Project(Base):
     __tablename__ = 'project'
-
     id = Column(Integer, primary_key=True)
-    page_url=Column("page_url",String(100))
+    page_url = Column("page_url", String(100))
     city_name = Column("city_name", String(100))
     agent_name = Column('agent_name', String(100))
     project_name = Column('project_name', String(100))
@@ -92,4 +91,25 @@ class Project(Base):
     district = Column('district', String(100))
 
 
-#Base.prepare(db_connect(),reflect=True)
+class ProjectStage(Base):
+    __tablename__ = 'project_stage'
+    id = Column(Integer, primary_key=True)
+    plan_url = Column('plan_url', String)
+    page_url = Column('page_url', String)
+    bid_date = Column('bid_date', Date)
+    bid_time = Column('bid_time', Time)
+    job_description = Column('job_description', String)
+    bid_date_utc = Column('bid_date_utc', DateTime)
+    state_code = Column('state_code', String)
+    time_zone_id = Column('time_zone_id', String)
+    owner = Column('owner', String)
+    solicitor = Column('solicitor', String)
+    contact_first_name = Column('contact_first_name', String)
+    contact_last_name = Column('contact_last_name', String)
+    phone_number = Column('phone_number', String)
+    email_address = Column('email_address', String)
+    county = Column('county', String)
+    estimated_value = Column('estimated_value', BigInteger)
+    owner_project_no = Column('owner_project_no', String)
+
+# Base.prepare(db_connect(),reflect=True)
