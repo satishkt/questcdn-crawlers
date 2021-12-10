@@ -52,7 +52,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
         self.item_failure(spider, item, response, exception=failure)
 
     def item_dropped(self, item, response, exception, spider):
-        self.item_failure(spider, item, response, exception=failure)
+        self.item_failure(spider, item, response, exception=exception)
 
     def spider_opened(self, spider):
         self.scraping_begin(spider)
@@ -72,7 +72,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
         :return:
         """
         self.logger.info(f"Checking to see if {agent_url} is enabled for scraping")
-        with Session(self.engine) as session,session.begin():
+        with Session(self.engine) as session, session.begin():
             agent = aliased(DataAggregatorAgent, name="agent")
             stmt = select(agent).where(agent.site_url == agent_url)
             result = session.execute(stmt)
@@ -99,7 +99,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
         tracking.site_url = scraped_urls
         tracking.start_time = datetime.now()
         tracking.created_date_time = datetime.now()
-        with Session(self.engine) as session,,session.begin():
+        with Session(self.engine) as session,session.begin():
             session.add(tracking)
             session.flush()
             self.logger.info(f"Inserted tracking id is {tracking.id}")
@@ -114,7 +114,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
         """
         self.logger.info(
             f"Ending Spider  Tracking session for spider {spider.name} with tracking id {self.tracking_id}")
-        with Session(self.engine) as session,,session.begin():
+        with Session(self.engine) as session,session.begin():
             tracking_end_time = datetime.now()
             tracking = session.query(Tracking).filter(Tracking.id == self.tracking_id).one()
             tracking.end_time = tracking_end_time
@@ -131,7 +131,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
         """
         self.logger.info(
             f"Ending Spider  Tracking session for spider {spider.name} with tracking id {self.tracking_id}")
-        with Session(self.engine) as session,session.begin():
+        with Session(self.engine) as session, session.begin():
             tracking_end_time = datetime.now()
             tracking = session.query(Tracking).filter(Tracking.id == self.tracking_id).one()
             tracking.end_time = tracking_end_time
@@ -150,7 +150,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
         :param exception:
         :return:
         """
-        with Session(self.engine) as session,session.begin():
+        with Session(self.engine) as session, session.begin():
             self.logger.error(
                 f"Logging item failed error from {spider.name} for item {item}, with exception = {str(exception)} and response = {response}")
             item_failure_error = Error()
