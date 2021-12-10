@@ -35,7 +35,7 @@ class QuestcdnPipeline:
         # Session = sessionmaker(bind=spider.engine)
         # session = Session()
         if isinstance(item, PlanetBidItem):
-            self.create_project_stage_item(item)
+            self.create_project_stage_item(item, spider)
         elif isinstance(item, QuestcdnItem):
             project = self.create_project_for_city_of_madison_item(item, spider)
         else:
@@ -63,15 +63,13 @@ class QuestcdnPipeline:
         project_stage.county = self.get_item_val_or_none('county', spider, item)
         project_stage.estimated_value = self.get_item_val_or_none('estimated_val', spider, item)
         project_stage.owner_project_no = self.get_item_val_or_none('owner_project_no', spider, item)
-        line = json.dumps(project_stage.__dict__, cls=DateTimeEncoder) + "\n"
-        self.file.write(line)
 
         pass
 
     @staticmethod
     def __get_time_zone_id(date_time):
         if date_time is not None:
-            return date_time.tzinfo.tzname()
+            return datetime.datetime.tzname(date_time)
 
     @staticmethod
     def __get_date_from_date(date_time):
