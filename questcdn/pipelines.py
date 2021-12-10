@@ -2,16 +2,14 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+import datetime
 import json
 import logging
-import datetime
 
 import pytz
-from itemadapter import ItemAdapter
-from sqlalchemy.orm import sessionmaker, Session
 
 from questcdn.items import PlanetBidItem, QuestcdnItem
-from questcdn.models import Project, ProjectStage
+from questcdn.models import Project, ProjectStage, db_session
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -23,12 +21,6 @@ class DateTimeEncoder(json.JSONEncoder):
 
 
 class QuestcdnPipeline:
-
-    def open_spider(self, spider):
-        self.file = open('items.jl', 'w')
-
-    def close_spider(self, spider):
-        self.file.close()
 
     def process_item(self, item, spider):
         spider.log(f"Processing item from spider {spider.name} for url ={item['page_url']} ", logging.INFO)
@@ -63,8 +55,11 @@ class QuestcdnPipeline:
         project_stage.county = self.get_item_val_or_none('county', spider, item)
         project_stage.estimated_value = self.get_item_val_or_none('estimated_val', spider, item)
         project_stage.owner_project_no = self.get_item_val_or_none('owner_project_no', spider, item)
-        with Session(spider.engine) as session, session.begin():
+        session = db_session()
+        with session, session.begin():
             session.add(project_stage)
+            session.commit()
+
 
         pass
 

@@ -1,21 +1,14 @@
 from scrapy.utils.project import get_project_settings
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Date, Time, BigInteger, ForeignKey, \
-    Numeric, FLOAT
-from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date, Time, BigInteger, ForeignKey, \
+    Numeric
+from sqlalchemy.orm import relationship, sessionmaker, declarative_base, scoped_session
 
-Base = automap_base()
-
-
-def db_connect():
-    """
-        Performs database connection using database settings from settings.py.
-        Returns sqlalchemy engine instance
-        """
-    return create_engine(get_project_settings().get("CONNECTION_STRING"))
+engine = create_engine(get_project_settings().get("CONNECTION_STRING"))
+db_session = scoped_session(sessionmaker(bind=engine, autoflush=True, autocommit=True))
+Base = declarative_base()
 
 
-def create_table(engine):
+def create_table():
     Base.metadata.create_all(engine)
 
 
@@ -30,7 +23,6 @@ class DataAggregatorAgent(Base):
     state_code = Column('state_code', String(100))
     auto_flag = Column('auto_flag', String(100))
     time_zone_id = Column('time_zone_id', Integer)
-    tracking = relationship("Tracking")
 
 
 class Error(Base):
@@ -45,14 +37,13 @@ class Error(Base):
 class Tracking(Base):
     __tablename__ = 'agent_tracking'
     id = Column('agent_tracking_id', Integer, primary_key=True)
+    track_id = Column('track_id', String(100))
     spider_name = Column('spider_name', String(100))
     start_time = Column('start_time', DateTime)
     end_time = Column('end_time', DateTime)
     total_records = Column('total_records', Integer)
     final_status = Column('final_status', String(100))
     extra_info = Column('extra_info', String(1000))
-    data_aggregator_agent_id = Column('data_aggregator_agent_id',
-                                      ForeignKey('data_aggregator_agent.data_aggregator_agent_id'))
     error = relationship("Error")
 
 
