@@ -96,7 +96,6 @@ CONNECTION_STRING = "{drivername}+mysqlconnector://{user}:{passwd}@{host}:{port}
     db_name="crawling",
 )
 
-
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -129,20 +128,21 @@ class MakeFileHandler(logging.FileHandler):
 
 LOG_ENABLED = False
 # Disable default Scrapy log settings.
-configure_logging(settings={
-    "LOG_STDOUT": True
-})
+configure_logging(
+    install_root_handler=False
+)
 # Define your logging settings.
 log_file = 'logs/CRAWLER_logs.log'
 stdout_handler = logging.StreamHandler(sys.stdout)
-
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
 formatter = logging.Formatter(
     fmt="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
     datefmt="%H:%M:%S"
 )
+stdout_handler.setFormatter(formatter)
 rotating_file_log = MakeFileHandler(log_file)
 rotating_file_log.setLevel(logging.DEBUG)
 rotating_file_log.setFormatter(formatter)
 root_logger.addHandler(rotating_file_log)
+root_logger.addHandler(stdout_handler)
