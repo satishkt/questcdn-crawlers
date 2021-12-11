@@ -6,14 +6,97 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.remote.webelement import WebElement
+from sqlalchemy import select
+from sqlalchemy.orm import aliased
 
 from questcdn.items import PlanetBidItem
+from questcdn.models import db_session, DataAggregatorAgent
 from questcdn.spiders.base_spider import BaseQuestCDNSpider
 
 
 class PlanetBidSpider(BaseQuestCDNSpider):
     name = 'planet_bid_spider'
-    start_urls = ['https://pbsystem.planetbids.com/portal/15927/bo/bo-search']
+    start_urls = ['https://pbsystem.planetbids.com/portal/22949/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/24054/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14999/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14999/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/16151/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14837/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/20314/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15927/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15118/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/18057/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/21910/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14660/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/13821/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/13721/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14997/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14319/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/27606/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/24980/bo/bo-detail/63296',
+                  'https://pbsystem.planetbids.com/portal/17992/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/39495/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14663/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15275/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14391/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/22554/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14058/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14771/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/20136/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/25014/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/22078/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/16339/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15300/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14593/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14590/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14210/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14210/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/22758/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/20134/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14272/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/11434/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15795/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/19236/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/32906/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15382/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14742/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14769/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15340/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14424/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/17920/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/39476/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/13982/bo/bo-search',
+                  'http://psp.planetbids.com/g/22198/',
+                  'https://pbsystem.planetbids.com/portal/21516/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15588/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14770/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/21372/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/16725/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/20314/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14773/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15381/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/23242/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/40356/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/15810/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/25569/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/27355/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/39486/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/19951/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/24660/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/39471/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/24662/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/14434/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/24809/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/24639/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/27970/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/29044/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/24103/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/28939/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/22576/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/29744/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/20137/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/27999/bo/bo-search',
+                  'https://pbsystem.planetbids.com/portal/29905/bo/bo-search']
 
     def __init__(self, **kwargs):
         super(PlanetBidSpider, self).__init__(self.name, **kwargs)
@@ -26,16 +109,6 @@ class PlanetBidSpider(BaseQuestCDNSpider):
                                    executable_path="D:\\WebDrivers\\geckodriver.exe",
                                    options=options)
         return driver
-
-    def start_requests(self):
-        self.logger.info(f'Starting the spider - {self.name}')
-        for url in self.start_urls:
-            self.logger.info(f"Checking if the url {url} is enabled for scraping ")
-            should_scrape = True  # self.check_if_agent_is_to_be_scraped(url)
-            if should_scrape:
-                yield Request(url=url, callback=self.parse)
-            else:
-                self.logger.warning(f"URL {url}  is not enabled for scraping, exiting")
 
     def parse(self, response, **kwargs):
         driver = self.create_web_driver()
@@ -76,16 +149,28 @@ class PlanetBidSpider(BaseQuestCDNSpider):
             driver.close()
             driver.quit()
 
+    def __get_data_tracker_details(self, agent_url=None):
+        session = db_session()
+        with session, session.begin():
+            agent = aliased(DataAggregatorAgent, name="agent")
+            stmt = select(agent).where(agent.site_url == agent_url)
+            result = session.execute(stmt)
+            row = result.fetchone()
+            owner = row.agent.owner
+            time_zone_id = row.agent.time_zone_id
+            return time_zone_id, owner
+
     def __process_row_data(self, response, row):
         child_page_id = row.get_attribute('rowattribute')
         remaining_element = row.find_element(By.XPATH, f'//td[@data-itemid="{child_page_id}"]/span')
         remaining_days = remaining_element.text
+        time_zone_id, owner =self.__get_data_tracker_details(response.url)
         detail_url = response.url[:response.url.rfind('/')] + '/bo-detail'
         self.logger.info(f"Processing child page - {detail_url}/{child_page_id} with days remaining = {remaining_days}")
         yield response.follow(f'{detail_url}/{child_page_id}', callback=self.parse_child_page,
-                              cb_kwargs={"days_remaining": remaining_days, "main_url": response.url})
+                              cb_kwargs={"days_remaining": remaining_days, "main_url": response.url,"time_zone_id":time_zone_id,"owner":owner})
 
-    def parse_child_page(self, response, days_remaining, main_url):
+    def parse_child_page(self, response, days_remaining, main_url,time_zone_id,owner):
         driver = self.create_web_driver()
         try:
             self.logger.info(f"Processing child page from url {response.url} with input params {days_remaining}")
@@ -102,6 +187,7 @@ class PlanetBidSpider(BaseQuestCDNSpider):
                 value = row.find_element(By.XPATH,
                                          './/div[@class="col-12 col-sm-8 col-lg-9 bid-detail-item-value"]').text
                 loader.add_value('page_url', response.url)
+                loader.add_value('owner', owner)
                 if label is not None and value is not None:
                     label = label.strip()
                     value = value.strip()
@@ -115,8 +201,6 @@ class PlanetBidSpider(BaseQuestCDNSpider):
                         loader.add_value('bid_due_date', value)
                     if label == 'Address':
                         loader.add_value('state_code', value)
-                    if label == 'owner':
-                        loader.add_value('owner', value)
                     if label == 'Contact Info':
                         loader.add_value('contact_first_name', value)
                     if label == 'Contact Info':

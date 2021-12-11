@@ -84,14 +84,16 @@ class BaseQuestCDNSpider(scrapy.Spider):
             stmt = select(agent).where(agent.site_url == agent_url)
             result = session.execute(stmt)
             row = result.fetchone()
-            self.logger.info(row.agent.auto_flag)
-            print(row.agent.auto_flag)
-            if row.agent.auto_flag is None or row.agent.auto_flag != 'N':
-                self.logger.info(f"Agent URL = {agent_url} is enabled for scraping")
-                return False
+            if row is not None:
+                self.logger.info(f"Data aggregator agent flag for {agent_url} is {row.agent.auto_flag}")
+                if row.agent.auto_flag is 'Y':
+                    self.logger.info(f"Agent URL = {agent_url} is enabled for scraping")
+                    return True
+                else:
+                    self.logger.info(f"Agent URL = {agent_url} is not enabled for scraping")
+                    return False
             else:
-                self.logger.info(f"Agent URL = {agent_url} is not enabled for scraping")
-                return False
+                self.logger.warning(f"No entry found in data aggregator agent for url {agent_url}")
 
     def scraping_begin(self, spider):
         """
