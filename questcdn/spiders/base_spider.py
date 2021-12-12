@@ -16,6 +16,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
         super(BaseQuestCDNSpider, self).__init__(name=self.name, **kwargs)
         create_table()
         self.track_id = str(uuid.uuid1())
+        self.item_scraped_count=0
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -47,6 +48,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
 
     def item_scraped(self, item, spider, response):
         self.logger.info(f"Spider {spider.name} has finished scraping item {item}")
+        self.item_scraped_count=self.item_scraped_count+1
 
     def item_error(self, item, response, spider, failure):
         self.item_failure(spider, item, response, exception=failure)
@@ -126,6 +128,7 @@ class BaseQuestCDNSpider(scrapy.Spider):
             tracking = self.find_tracker_row(self.track_id, session)
             tracking_end_time = datetime.now()
             tracking.end_time = tracking_end_time
+            tracking.total_records=self.item_scraped_count
             tracking.final_status = 'NO_ISSUES'
             self.logger.info(
                 f"Ending tracking session for tracking id {self.track_id} at {tracking_end_time} with reason as {reason}")

@@ -85,7 +85,10 @@ def parse_bid_posting_date(text):
 
 def clean_up_first_last_name(text):
     email = parse_email_from_contact_deets(text)
-    return text.replace(email, '').strip()
+    phone_no = parse_ph_no_from_contact_details(text)
+    text = text.replace(email, '').strip()
+    text = text.replace(phone_no, '').strip()
+    return text
 
 
 def parse_email_from_contact_deets(text):
@@ -132,7 +135,7 @@ class PlanetBidItem(Item):
     job_description = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     bid_due_date = Field(input_processor=MapCompose(remove_spaces, parse_bid_posting_date),
                          output_processor=TakeFirst())
-    state_code = Field(input_processor=MapCompose(remove_spaces,find_state), output_processor=TakeFirst())
+    state_code = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     owner = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     solicitor = Field(input_processor=MapCompose(remove_spaces), output_processor=TakeFirst())
     contact_first_name = Field(input_processor=MapCompose(remove_spaces, clean_up_first_last_name),
