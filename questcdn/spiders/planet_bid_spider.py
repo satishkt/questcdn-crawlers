@@ -133,15 +133,14 @@ class PlanetBidSpider(BaseQuestCDNSpider):
                 f"{len(canceled_invitation_elements)} - canceled invitation elements and {len(awarded_invitation_elements)} - awarded invitation elements")
             for row in bidding_invitation_elements:
                 yield from self.__process_row_data(response, row)
+            for row in closed_invitation_elements:
+                yield from self.__process_row_data(response, row)
 
-            # for row in closed_invitation_elements:
-            #     yield from self.__process_row_data(response, row)
-            #
-            # for row in canceled_invitation_elements:
-            #     yield from self.__process_row_data(response, row)
-            #
-            # for row in awarded_invitation_elements:
-            #     yield from self.__process_row_data(response, row)
+            for row in canceled_invitation_elements:
+                yield from self.__process_row_data(response, row)
+
+            for row in awarded_invitation_elements:
+                yield from self.__process_row_data(response, row)
         except Exception as e:
             self.logger.error("Error parsing data from planet bids page.", exc_info=True)
         finally:
@@ -157,20 +156,22 @@ class PlanetBidSpider(BaseQuestCDNSpider):
             result = session.execute(stmt)
             row = result.fetchone()
             owner = row.agent.owner
+            state_code = row.agent.state_code
             time_zone_id = row.agent.time_zone_id
-            return time_zone_id, owner
+            return time_zone_id, owner, state_code
 
     def __process_row_data(self, response, row):
         child_page_id = row.get_attribute('rowattribute')
         remaining_element = row.find_element(By.XPATH, f'//td[@data-itemid="{child_page_id}"]/span')
         remaining_days = remaining_element.text
-        time_zone_id, owner =self.__get_data_tracker_details(response.url)
+        time_zone_id, owner, state_code = self.__get_data_tracker_details(response.url)
         detail_url = response.url[:response.url.rfind('/')] + '/bo-detail'
         self.logger.info(f"Processing child page - {detail_url}/{child_page_id} with days remaining = {remaining_days}")
         yield response.follow(f'{detail_url}/{child_page_id}', callback=self.parse_child_page,
-                              cb_kwargs={"days_remaining": remaining_days, "main_url": response.url,"time_zone_id":time_zone_id,"owner":owner})
+                              cb_kwargs={"days_remaining": remaining_days, "main_url": response.url,
+                                         "time_zone_id": time_zone_id, "owner": owner, "state_code": state_code})
 
-    def parse_child_page(self, response, days_remaining, main_url,time_zone_id,owner):
+    def parse_child_page(self, response, days_remaining, main_url, time_zone_id, owner, state_code):
         driver = self.create_web_driver()
         try:
             self.logger.info(f"Processing child page from url {response.url} with input params {days_remaining}")
@@ -181,13 +182,13 @@ class PlanetBidSpider(BaseQuestCDNSpider):
             loader = ItemLoader(item=PlanetBidItem())
             loader.add_value('main_url', main_url)
             loader.add_value('page_url', response.url)
+            loader.add_value('owner', owner)
+            loader.add_value('state_code', state_code)
             for row in all_rows:
                 label = row.find_element(By.XPATH,
                                          './/div[@class="col-12 col-sm-3 col-lg-2 bid-detail-item-title"]').text
                 value = row.find_element(By.XPATH,
                                          './/div[@class="col-12 col-sm-8 col-lg-9 bid-detail-item-value"]').text
-                loader.add_value('page_url', response.url)
-                loader.add_value('owner', owner)
                 if label is not None and value is not None:
                     label = label.strip()
                     value = value.strip()
