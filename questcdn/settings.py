@@ -95,9 +95,8 @@ CONNECTION_STRING = "{drivername}+mysqlconnector://{user}:{passwd}@{host}:{port}
     port="3306",
     db_name="q_cdn_scrap",
 )
-
-import logging
-from logging.handlers import RotatingFileHandler
+FIREFOX_PATH="C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+GECKO_DRIVER="D:\\WebDrivers\\geckodriver.exe"
 
 from scrapy.utils.log import configure_logging
 
@@ -150,3 +149,5 @@ logging.getLogger('scrapy').setLevel(logging.WARNING)
 logging.getLogger('selenium').setLevel(logging.WARNING)
 logging.getLogger('urllib3').setLevel(logging.INFO)
 #urllib3.connectionpool
+
+#Firefox path settings

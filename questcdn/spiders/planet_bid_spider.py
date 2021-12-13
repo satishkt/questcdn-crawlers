@@ -1,7 +1,7 @@
 from typing import List
 
-from scrapy import Request
 from scrapy.loader import ItemLoader
+from scrapy.utils.project import get_project_settings
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
@@ -102,11 +102,11 @@ class PlanetBidSpider(BaseQuestCDNSpider):
         super(PlanetBidSpider, self).__init__(self.name, **kwargs)
 
     def create_web_driver(self):
-        binary = FirefoxBinary('C:\\Program Files\\Mozilla Firefox\\firefox.exe')
+        binary = FirefoxBinary(get_project_settings().get("FIREFOX_PATH"))
         options = webdriver.FirefoxOptions()
         options.add_argument("--headless")
         driver = webdriver.Firefox(firefox_binary=binary,
-                                   executable_path="D:\\WebDrivers\\geckodriver.exe",
+                                   executable_path=get_project_settings().get("GECKO_DRIVER"),
                                    options=options)
         return driver
 
