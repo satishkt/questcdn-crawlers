@@ -16,7 +16,8 @@ from questcdn.spiders.base_spider import BaseQuestCDNSpider
 
 class PlanetBidSpider(BaseQuestCDNSpider):
     name = 'planet_bid_spider'
-    start_urls =['https://pbsystem.planetbids.com/portal/22949/bo/bo-search']
+    start_urls = ['https://pbsystem.planetbids.com/portal/22949/bo/bo-search']
+
     # start_urls = ['https://pbsystem.planetbids.com/portal/22949/bo/bo-search',
     #               'https://pbsystem.planetbids.com/portal/24054/bo/bo-search',
     #               'https://pbsystem.planetbids.com/portal/14999/bo/bo-search',
@@ -103,6 +104,10 @@ class PlanetBidSpider(BaseQuestCDNSpider):
         super(PlanetBidSpider, self).__init__(self.name, **kwargs)
 
     def create_web_driver(self):
+        """
+        Create a Firefox webdriver to scrape javascript websites.
+        :return:
+        """
         binary = FirefoxBinary(get_project_settings().get("FIREFOX_PATH"))
         options = webdriver.FirefoxOptions()
         options.add_argument("--headless")
@@ -116,8 +121,9 @@ class PlanetBidSpider(BaseQuestCDNSpider):
         try:
             self.logger.info(f"Fetching data from url {response.url} for main page")
             driver.get(response.url)
-            driver.implicitly_wait(10)
             driver.execute_script('window.scrollTo(0,document.body.scrollHeight)')
+
+            driver.implicitly_wait(10)
 
             bidding_invitation_elements: List[WebElement] = driver.find_elements(By.XPATH,
                                                                                  '//tr[@class="row-highlight  stageStr-bidding byInvitation-false ember-view"]')
@@ -130,18 +136,18 @@ class PlanetBidSpider(BaseQuestCDNSpider):
             awarded_invitation_elements: List[WebElement] = driver.find_elements(By.XPATH,
                                                                                  '//tr[@class="row-highlight  stageStr-awarded byInvitation-false ember-view"]')
             self.logger.info(
-                f"For URL {response.url} , retrieved {len(bidding_invitation_elements)} - bidding invitation elements, {len(closed_invitation_elements)} - closed invitation elements"
+                f"For URL {response.url} , retrieved {len(bidding_invitation_elements)} open bidding invitation elements, {len(closed_invitation_elements)} - closed invitation elements,"
                 f"{len(canceled_invitation_elements)} - canceled invitation elements and {len(awarded_invitation_elements)} - awarded invitation elements")
             for row in bidding_invitation_elements:
                 yield from self.__process_row_data(response, row)
-            for row in closed_invitation_elements:
-                yield from self.__process_row_data(response, row)
-
-            for row in canceled_invitation_elements:
-                yield from self.__process_row_data(response, row)
-
-            for row in awarded_invitation_elements:
-                yield from self.__process_row_data(response, row)
+            # for row in closed_invitation_elements:
+            #     yield from self.__process_row_data(response, row)
+            #
+            # for row in canceled_invitation_elements:
+            #     yield from self.__process_row_data(response, row)
+            #
+            # for row in awarded_invitation_elements:
+            #     yield from self.__process_row_data(response, row)
         except Exception as e:
             self.logger.error("Error parsing data from planet bids page.", exc_info=True)
         finally:
